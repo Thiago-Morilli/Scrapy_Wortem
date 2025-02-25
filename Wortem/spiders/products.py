@@ -12,10 +12,10 @@ class ProductsSpider(scrapy.Spider):
             url=self.domains,
             method="GET",
             headers=self.headers,
-            callback=self.parse
+            callback=self.category
         )
 
-    def parse(self, response):
+    def category(self, response):
         for category in response.xpath('''//div[@id="__nuxt"]/div/div/div/div[@data-module-id="01J0632XE32YQB2V423H8PT8XN"]/div/div/header/div[@class="main-nav__container"]
 /div/div/div/nav/div/ul/li/a/@href''').getall():
             if "/gaming" in category or "/informatica-e-acessorios" in category:
@@ -24,10 +24,24 @@ class ProductsSpider(scrapy.Spider):
                     url=link,
                     method="GET",
                     headers=self.headers,
-                    callback= self.products
+                    callback= self.parse
                 )
 
-    def products(self, response):
+    def parse(self, response):
 
-        link = response.xpath('//*[@id="__nuxt"]/div/div/div[2]/div[10]/div/section/div/div/div[1]/article[1]/a')
+        title = response.xpath('//section[@class="neu-02-bg category-links"]/div/div/div/article/a/h2[@class="category-links__text semibold"]/text()').getall()
+        
+        for links in response.xpath('//section[@class="neu-02-bg category-links"]/div/div/div/article/a/@href').getall():
+            link = self.domains + links
+            yield scrapy.Request(
+                url=link,
+                method="GET",
+                headers=self.headers,
+                callback=self.products
+            )
+            
+    def products(self, response):
+        link = response.xpath('//section[@class="listing-content gama__listing-content"]/div/div[@class="listing-content__list-container"]/li[@class="listing-content__card"]')
         print(link)
+        
+        
